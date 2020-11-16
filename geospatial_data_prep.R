@@ -8,9 +8,13 @@
 
 rm (list = ls())
 
+# load required packages
 library(rgdal)
 library(raster)
+library(sp)
+library(rgdal)
 
+# set working directory
 setwd("L:/projects/siberia_uas_planet_comp")
 
 # load planet analytic image from 6 July 2019
@@ -34,12 +38,32 @@ crs(tr1) <- st
 # load rbg flight from Cherskiy North Transect 2
 tr2 <- stack("data/uas/CYN_TR2_FL017.tif")
 # set coordinate system
+crs(tr2) <- st 
+# create from merged extent object to clip Planet image
+x1 <- projectExtent(tr1,crs(pl))
+x2 <- projectExtent(tr2,crs(pl))
+
+x <- merge(extent(projectExtent(tr1,crs(pl))),
+           extent(projectExtent(tr2,crs(pl))))
+
+# crop planet to extent of drone flights
+test <- crop(pl,x)
+
+# reproject Planet image to ...
+plr <- projectRaster(pl,crs = st, res = 3,
+                     filename = "CYN_stereo_20190706_002918_101b_3B_AnalyticMS_SR.tif")
 
 
+plr <- crop(plr,merge(extent(tr1),extent(tr2)),
+            filename = "CYN_stereo_20190706_002918_101b_3B_AnalyticMS_SR.tif")
 
+# reproject drone imagery
+tr1a <- projectRaster(tr1,crs = aea, res = res(tr1),
+                      ) 
+tr1l <- projectRaster(tr1,crs = laea, res = res(tr1))
 
-
-
+# read in training/validation data
+lc <- readOGR("data/ground_truth/cyn_landover_pts.shp")
 
 # Kolym_Albers_Equal_Area_Conic_2
 # Authority: Custom
@@ -54,13 +78,3 @@ tr2 <- stack("data/uas/CYN_TR2_FL017.tif")
 # Linear Unit: Meter (1.0)
 crs(tr2) <- st 
 
-# create from merged extent object to clip Planet image
-#x <- projectExtent(merge(extent(tr1),extent(tr2)),crs=crs(st))
-
-# reproject PL=lanet image to stereographic equal area
-plr <- projectRaster(pl,crs = st, res = 3,
-                     filename = "CYN_stereo_20190706_002918_101b_3B_AnalyticMS_SR.tif")
-
-
-plr <- crop(plr,merge(extent(tr1),extent(tr2)),
-                     filename = "CYN_stereo_20190706_002918_101b_3B_AnalyticMS_SR.tif")
