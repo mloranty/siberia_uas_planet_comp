@@ -23,7 +23,7 @@ tr1i <- readImage("data/uas/CYN_TR1_FL016.tif", convert = T)
 # set coordinate system
 crs(tr1) <- st 
 
-Region.slic <- superpixels(input_image = tr1i, method = "slic", superpixel = 80,
+Region.slico <- superpixels(input_image = tr1i, method = "slico", superpixel = 80,
                           compactness = 30, return_slic_data = TRUE,
                           return_labels = TRUE, write_slic = "data/CNY_try_segment.bin",
                           verbose = FALSE)
