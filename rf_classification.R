@@ -1,5 +1,5 @@
 ############################
-# image segmentation of UAS 
+# RF classification of UAS 
 # of Siberia UAS imagery
 # 
 # MML 11/16/20
@@ -93,6 +93,7 @@ validDms <- dataAllms[dataAllms$sampleType=="valid",]
 
 trainDpl <- dataAllpl[dataAllpl$sampleType=="train",]
 validDpl <- dataAllpl[dataAllpl$sampleType=="valid",]
+
 #------------Random Forest Classification of RGB data------------#
 # run the Random Forest model
 tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the training data
@@ -114,7 +115,7 @@ rf_model
 # apply RF model to rgb data
 rf_prediction <- raster::predict(tr1, model=rf_model,
                                  filename = "data/processed/CYN_tr1_rgb_rf_lc.tif",
-                                 progress = T)
+                                 overwrite = T, progress = T)
 
 #plot the data
 plot(rf_prediction)
@@ -139,7 +140,7 @@ rf_model_ms
 # apply RF model to rgb data
 rf_prediction_ms <- raster::predict(tr1m, model=rf_model_ms,
                                  filename = "data/processed/CYN_tr1_ms_rf_lc.tif",
-                                 progress = T)
+                                 overwrite = T, progress = T)
 
 #plot the data
 plot(rf_prediction_ms)
@@ -164,7 +165,7 @@ rf_model_pl
 # apply RF model to Planet data
 rf_prediction_pl <- raster::predict(pl, model=rf_model_pl,
                                     filename = "data/processed/CYN_tr1_planet_rf_lc.tif",
-                                    progress = T)
+                                    overwrite = T, progress = T)
 
 #plot the data
 plot(rf_prediction_pl)
