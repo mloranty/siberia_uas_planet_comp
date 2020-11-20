@@ -15,6 +15,7 @@ library(sp)
 library(rgdal)
 library(caret)
 library(randomForest)
+library(tidyverse)
 
 # set working directory
 setwd("L:/projects/siberia_uas_planet_comp")
@@ -57,6 +58,10 @@ lc$lc2[lc$Landcover=="water"] <- "water"
 lc$lc2[lc$Landcover=="lichen"] <- "ground"
 lc$lc2[lc$Landcover=="larch"|lc$Landcover=="shrub"] <- "tall"
 
+# write updated training data
+writeOGR(lc, "data/processed/CNY_TR1_lc_updated.shp", driver = "ESRI Shapefile", layer = "lc2")
+
+# create data frame for validation/training
 landExtract <- data.frame(lcID = as.numeric(as.factor(lc$lc2)),
                           x = lc@coords[,1],
                           y = lc@coords[,2])
@@ -169,3 +174,69 @@ rf_prediction_pl <- raster::predict(pl, model=rf_model_pl,
 
 #plot the data
 plot(rf_prediction_pl)
+
+#------------Random Forest Classification of Planet data with validation from MS land cover ------------#
+
+# aggregate multispectral lc map to 3m resolution using modal function
+lcp <- aggregate(rf_prediction_ms,fact = 47, fun=modal)
+lcp <- resample(lcp,pl,method = "ngb",
+                filename = "data/processed/CYN_tr1_ms_rf_lc_3m.tif",
+                overwrite = T, progress = T)
+
+# aggregate rgb lc map to 3m resolution using modal function
+lcp2 <- aggregate(rf_prediction,fact = 183, fun=modal)
+lcp2 <- projectRaster(lcp2,pl,method = "ngb",
+                      filename = "data/processed/CYN_tr1_rgb_rf_lc_3m.tif",
+                      overwrite = T, progress = T)
+
+datLCr <- dataAllpl
+datLCm <- dataAllpl
+datLCr$lcID <- raster::extract(lcp2,lc)
+datLCm$lcID <- raster::extract(lcp,lc)
+
+r <- which(duplicated(datLCr[,5:10])==F)
+
+datLCm <- datLCm[r,]
+datLCr <- datLCr[r,]
+
+trainLCr <- datLCr[datLCr$sampleType=="train",]
+validLCr <- datLCr[datLCr$sampleType=="valid",]
+
+trainLCm <- datLCm[datLCm$sampleType=="train",]
+validLCm <- datLCm[datLCm$sampleType=="valid",]
+
+# model from ms image
+rf_model_pl_ms <- caret::train(x = trainLCm[,c(5:10)], #digital number data
+                            y = as.factor(trainLCm$lcID), #land class we want to predict
+                            method = "rf", #use random forest
+                            metric="Accuracy", #assess by accuracy
+                            trainControl = tc, #use parameter tuning method
+                            tuneGrid = rf.grid) #parameter tuning grid
+#check output
+rf_model_pl_ms
+
+# apply RF model to Planet data
+rf_prediction_pl_ms <- raster::predict(pl, model=rf_model_pl_ms,
+                                    filename = "data/processed/CYN_tr1_planet_rf_lc_ms.tif",
+                                    overwrite = T, progress = T)
+
+#plot the data
+plot(rf_prediction_pl_ms)
+
+# model from rgb image
+rf_model_pl_r <- caret::train(x = trainLCr[,c(5:10)], #digital number data
+                               y = as.factor(trainLCr$lcID), #land class we want to predict
+                               method = "rf", #use random forest
+                               metric="Accuracy", #assess by accuracy
+                               trainControl = tc, #use parameter tuning method
+                               tuneGrid = rf.grid) #parameter tuning grid
+#check output
+rf_model_pl_r
+
+# apply RF model to Planet data
+rf_prediction_pl_r <- raster::predict(pl, model=rf_model_pl_r,
+                                       filename = "data/processed/CYN_tr1_planet_rf_lc_rgb.tif",
+                                       overwrite = T, progress = T)
+
+#plot the data
+plot(rf_prediction_pl_r)

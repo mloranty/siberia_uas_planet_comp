@@ -30,12 +30,16 @@ names(pl) <- c("blue", "green", "red", "nir", "ndvi", "ndwi")
 ## read lc maps
 lcr <- raster("data/processed/CYN_tr1_rgb_rf_lc.tif")
 lcm <- raster("data/processed/CYN_tr1_ms_rf_lc.tif")
+lcpl <- raster("data/processed/CYN_tr1_planet_rf_lc.tif")
+lcplr <- raster("data/processed/CYN_tr1_planet_rf_lc_rgb.tif")
+lcplm <- raster("data/processed/CYN_tr1_planet_rf_lc_ms.tif")
 
 # aggregate multispectral lc map to 3m resolution using modal function
 lcp <- aggregate(lcm,fact = 47, fun=modal)
 lcp <- resample(lcp,pl,method = "ngb",
               filename = "data/processed/CYN_tr1_ms_rf_lc_3m.tif")
 
+# aggregate rgb lc map to 3m resolution using modal function
 lcp2 <- aggregate(lcr,fact = 183, fun=modal)
 lcp2 <- projectRaster(lcp2,pl,method = "ngb",
                 filename = "data/processed/CYN_tr1_rgb_rf_lc_3m.tif")
@@ -69,7 +73,29 @@ ar <- cbind(ar,c(length(which(getValues(lcp2) == 1))*a,
                  length(which(getValues(lcp2) == 2))*a,
                  length(which(getValues(lcp2) == 3))*a))
 
-colnames(ar) <- c("area.r", "area.ms", "area.ms3m", "area.rgb3m")
+a <- ifelse(length(res(lcpl))==1,
+            res(lcpl)^2,
+            res(lcpl)[1]*res(lcpl)[2])
+ar <- cbind(ar,c(length(which(getValues(lcpl) == 1))*a,
+                 length(which(getValues(lcpl) == 2))*a,
+                 length(which(getValues(lcpl) == 3))*a))
+
+a <- ifelse(length(res(lcplr))==1,
+            res(lcplr)^2,
+            res(lcplr)[1]*res(lcplr)[2])
+ar <- cbind(ar,c(length(which(getValues(lcplr) == 1))*a,
+                 length(which(getValues(lcplr) == 2))*a,
+                 length(which(getValues(lcplr) == 3))*a))
+
+a <- ifelse(length(res(lcplm))==1,
+            res(lcplm)^2,
+            res(lcplm)[1]*res(lcplm)[2])
+ar <- cbind(ar,c(length(which(getValues(lcplm) == 1))*a,
+                 length(which(getValues(lcplm) == 2))*a,
+                 length(which(getValues(lcplm) == 3))*a))
+
+
+colnames(ar) <- c("area.r", "area.ms", "area.ms3m", "area.rgb3m", "area.pl", "area.plrgb", "area.plms")
 row.names(ar) <- c("ground", "tall", "water")
 
 write.csv(ar, file = "lc_area_orig_res.csv",
