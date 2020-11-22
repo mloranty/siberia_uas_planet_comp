@@ -79,6 +79,7 @@ tr1m <- mask(tr1m,m2,
              overwrite = T)
 
 
+
 #------------load planet satellite data------------#
 ##
 # planet analytic image from 6 July 2019
@@ -108,6 +109,11 @@ tr1pl$ndwi <- (tr1pl$green-tr1pl$nir)/(tr1pl$green+tr1pl$nir)
 #write output to file
 writeRaster(tr1pl, filename = "data/processed/CYN_TR1_rgb_mask_20190706_002918_101b_3B_AnalyticMS_SR.tif",
             overwrite = T)
+
+
+# resample UAV ndvi to planet resolution
+tr1ms <- resample(tr1m$ndvi,tr1pl,
+                  filename = "data/processed/CYN_TR1_ms_ndvi_3m.tif")
 
 #------------load training/validation data------------#
 # read in  data

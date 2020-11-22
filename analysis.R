@@ -21,6 +21,8 @@ tr1m <- stack("data/processed/RU_CYN_TR1_FL016M_allbands_rgb_mask.tif")
 # set band names for ms image
 names(tr1m) <- c("green", "red", "rededge", "nir", "ndvi", "ndwi")
 
+# read 3m uas NDVI
+tr1ms <- raster(filename = "data/processed/CYN_TR1_ms_ndvi_3m.tif")
 ##
 # read planet data
 pl <- stack("data/processed/CYN_TR1_rgb_mask_20190706_002918_101b_3B_AnalyticMS_SR.tif")
@@ -100,6 +102,22 @@ row.names(ar) <- c("ground", "tall", "water")
 
 write.csv(ar, file = "lc_area_orig_res.csv",
           row.names = T)
+
+## boxplot of NDVI for UAS and planet images
+n.dat <- data.frame(ndvi = c(getValues(tr1m$ndvi),getValues(tr1ms),getValues(pl$ndvi)),
+                     source = c(rep("UAS", ncell(tr1m$ndvi)),rep("UAS 3m", ncell(tr1ms)),rep("Planet", ncell(pl$ndvi))))
+
+
+png(filename = "figures/ndvi_boxplot.png",
+    width = 8, height = 6, units = "in", res = 300)
+par(cex = 3,cex.axis = 2, cex.lab = 2, cex.sub = 2,
+    mfcol = c(1,1),
+    mar = c(4,5,4,4))
+boxplot(ndvi~source, data = n.dat, 
+        xlab="", ylab = "NDVI", 
+        ylim = c(0.1, 0.9))
+dev.off()
+
 
 ## calculate NDVI by class
 zonal(tr1m[[5]],lcm)
