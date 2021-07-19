@@ -20,7 +20,7 @@ library(tidyverse)
 # set working directory
 setwd("L:/projects/siberia_uas_planet_comp")
 
-#------------load data sets------------#
+#------------load data sets---------
 ## 
 #rbg flight from Cherskiy North Transect 1
 tr1 <- stack("data/uas/CYN_TR1_FL016.tif")
@@ -175,7 +175,7 @@ rf_prediction_pl <- raster::predict(pl, model=rf_model_pl,
 #plot the data
 plot(rf_prediction_pl)
 
-#------------Random Forest Classification of Planet data with validation from MS land cover ------------#
+#------------Random Forest Classification of Planet data with validation from MS land cover ------------
 
 # aggregate multispectral lc map to 3m resolution using modal function
 lcp <- aggregate(rf_prediction_ms,fact = 47, fun=modal)
