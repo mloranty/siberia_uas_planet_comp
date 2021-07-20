@@ -8,20 +8,20 @@
 
 rm (list = ls())
 
-# load required packages
+# load required packages ----
 library(rgdal)
 library(raster)
 library(sp)
 library(rgdal)
 
-# set working directory
-#setwd("L:/projects/siberia_uas_planet_comp")
-
+# specify directories to work in
 ud <- "L:/data_repo/field_data/siberia_uas_2019/"
+pd <- "L:/projects/siberia_uas_planet_comp/"
 
-setwd("L:/data_repo/field_data/siberia_uas_2019/")
+# set working directory for uas data
+setwd(ud)
 
-#------------define projections--------
+#------------define projections----------------------------------------------------------------------
 # stereographic projection (rgb uas data)
 st <- "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs" 
 
@@ -31,68 +31,99 @@ laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_d
 # Kolyma albers equal area
 aea <- "+proj=aea +lat_1=25 +lat_2=75 +lat_0=60 +lon_0=150 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
-#------------load rgb uas data---------
-# Cherskiy North Transect 1
-tr1 <- stack("data/uas/CYN_TR1_FL016.tif")
+#------------load rgb uas data------------------------------------------------------------------------
+# read Cherskiy North Transect 1 & set NA value
+c1r <- stack("processed_Agisoft/adc_archive_files/RU_CYN_TR1_FL016_RGB.tif")
+NAvalue(c1r) <- 255
 
-# set the NA value 
-NAvalue(tr1) <- 255
+# read Cherskiy North Transect 2 & set NA value
+c2r <- stack("processed_Agisoft/adc_archive_files/RU_CYN_TR2_FL017_RGB.tif")
+NAvalue(c2r) <- 255
 
-# set coordinate system
-#crs(tr1) <- st 
+# read Alnus Transect 1 & set NA value
+a1r <- stack("processed_Agisoft/adc_archive_files/RU_ALN_TR1_FL007_RGB.tif")
+NAvalue(a1r) <- 255
 
-# # Cherskiy North Transect 2
-# tr2 <- stack("data/uas/CYN_TR2_FL017.tif")
-# # set coordinate system
-# crs(tr2) <- st 
+# read BP Transect 2 & set NA value
+b2r <- stack("processed_Agisoft/adc_archive_files/RU_BP_TR2_FL012_RGB.tif")
+NAvalue(b2r) <- 255
 
-tr1a <- projectRaster(tr1,crs = aea, res = 0.02,method = "bilinear",
-                      filename = "data/uas/CYN_TR1_FL016_aea.tif")
+#------------load multispectral uas data--------------------------------------------------------------
+# create a vector of names for ms layers
+n <- c("green", "red", "rededge", "nir", "ndvi", "ndwi")
 
-# create bounding mask
-m <- reclassify(tr1[[1]],c(0,254,1),
-                filename = "data/uas/CYN_TR1_mask.tif")
+# function to calculate NDWI after McFeeters et al 1996
+# first layer is green, fourth is nir
+ndwi <- function(x){(x[[1]]-x[[4]])/(x[[1]]+x[[4]])}
 
-# reproject drone imagery (this takes a long time!)
-tr1a <- projectRaster(tr1,crs = aea, res = res(tr1),
-                      ) 
-#tr1l <- projectRaster(tr1,crs = laea, res = res(tr1))
-
-#------------load multispectral uas data---------
-##
-# read multispectral data
-tr1m <- stack(c("data/uas/updated/RU_CYN_TR1_FL016M_index_green.tif",
-                "data/uas/updated/RU_CYN_TR1_FL016M_index_red.tif",
-                "data/uas/updated/RU_CYN_TR1_FL016M_index_red_edge.tif",
-                "data/uas/updated/RU_CYN_TR1_FL016M_index_nir.tif",
-                "data/uas/updated/RU_CYN_TR1_FL016M_index_ndvi.tif"))
-
+### read Cherskiy North Transect 1 multispectral data
+c1m <- stack(c("processed_Pix4D/adc_archive_files/RU_CYN_TR1_FL016M_green.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR1_FL016M_red.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR1_FL016M_red_edge.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR1_FL016M_nir.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR1_FL016M_ndvi.tif"))
 
 # calculate ndwi after McFeeters et al 
-tr1m[[6]] <- (tr1m[[1]]-tr1m[[4]])/(tr1m[[1]]+tr1m[[4]])
+c1m[[6]] <- ndwi(c1m)
 
 # # set band names for ms image
-names(tr1m) <- c("green", "red", "rededge", "nir", "ndvi", "ndwi")
+names(c1m) <- n
 
-# reproject to mask MS data
-m2 <- projectRaster(m,tr1m[[1]], method = "ngb",
-                    filname = "data/processed/CYN_TR1_UTM_mask.tif" )
+### read Cherskiy North Transect 2 multispectral data
+c2m <- stack(c("processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_green.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_red.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_red_edge.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_nir.tif",
+               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_ndvi.tif"))
 
-tr1m <- mask(tr1m,m2, 
-             filename = "data/processed/RU_CYN_TR1_FL016M_allbands_rgb_mask.tif",
-             overwrite = T)
+# calculate ndwi after McFeeters et al 
+c2m[[6]] <- ndwi(c2m)
+
+# # set band names for ms image
+names(c2m) <- n
+
+### read Alnus Transect 1 multispectral data
+a1m <- stack(c("processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_green.tif",
+               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_red.tif",
+               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_red_edge.tif",
+               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_nir.tif",
+               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_ndvi.tif"))
+
+# calculate ndwi after McFeeters et al 
+a1m[[6]] <- ndwi(a1m)
+
+# # set band names for ms image
+names(a1m) <- n
+
+### read BP Transect 2 multispectral data
+b2m <- stack(c("processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_green.tif",
+               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_red.tif",
+               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_red_edge.tif",
+               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_nir.tif",
+               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_ndvi.tif"))
+
+# calculate ndwi after McFeeters et al 
+b2m[[6]] <- ndwi(b2m)
+
+# # set band names for ms image
+names(b2m) <- n
+
+#------------load planet satellite data--------------------------------------------------------------
+# change working directory to project directory
+setwd(pd)
+
+# surface reflectance image covering both Cherskiy North Transects from  6 July 2019
+cp <- stack("data/CYN_06_Jul_2019_PSScene4Band_Explorer/files/PSScene4Band/20190706_002918_101b/analytic_sr_udm2/20190706_002918_101b_3B_AnalyticMS_SR.tif")
+
+ap <- stack("data/planet/ALN_June_2019_psscene4band_analytic_sr_udm2/files/PSScene4Band/20190622_214533_1052/analytic_sr_udm2/20190622_214533_1052_3B_AnalyticMS_SR.tif")
+
+bp <- stack("data/planet/RU_BP_June_2019_psscene4band_analytic_sr_udm2/files/PSScene4Band/20190624_214432_1020/analytic_sr_udm2/20190624_214432_1020_3B_AnalyticMS_SR.tif")
 
 
-
-#------------load planet satellite data------
-##
-# planet analytic image from 6 July 2019
-pl <- stack("data/CYN_06_Jul_2019_PSScene4Band_Explorer/files/PSScene4Band/20190706_002918_101b/analytic_sr_udm2/20190706_002918_101b_3B_AnalyticMS_SR.tif")
-
+######### STOPPING HERE, 7/20/21 - need to consider common projection and figure out UAS MS reflectance issues
 # create from extent object to clip Planet image
 # x <- merge(extent(projectExtent(tr1,crs(pl))),
 #            extent(projectExtent(tr2,crs(pl))))
-
 # crop planet to extent of RGBdrone flights
 tr1pl <- crop(pl,projectExtent(tr1,crs(pl)))
 
@@ -118,6 +149,18 @@ writeRaster(tr1pl, filename = "data/processed/CYN_TR1_rgb_mask_20190706_002918_1
 # resample UAV ndvi to planet resolution
 tr1ms <- resample(tr1m$ndvi,tr1pl,
                   filename = "data/processed/CYN_TR1_ms_ndvi_3m.tif")
+
+#------------- Reproject and Mask data for analysis----
+# create bounding mask
+m <- reclassify(tr1[[1]],c(0,254,1),
+                filename = "data/uas/CYN_TR1_mask.tif")
+# reproject to mask MS data
+m2 <- projectRaster(m,tr1m[[1]], method = "ngb",
+                    filname = "data/processed/CYN_TR1_UTM_mask.tif" )
+
+tr1m <- mask(tr1m,m2, 
+             filename = "data/processed/RU_CYN_TR1_FL016M_allbands_rgb_mask.tif",
+             overwrite = T)
 
 #------------load training/validation data--------
 # read in  data
