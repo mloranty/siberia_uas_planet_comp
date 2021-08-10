@@ -121,6 +121,7 @@ bp <- stack("data/planet/RU_BP_June_2019_psscene4band_analytic_sr_udm2/files/PSS
 
 
 ######### STOPPING HERE, 7/20/21 - need to consider common projection and figure out UAS MS reflectance issues
+######### also determine which Planet images to use for ALN and BP
 # create from extent object to clip Planet image
 # x <- merge(extent(projectExtent(tr1,crs(pl))),
 #            extent(projectExtent(tr2,crs(pl))))

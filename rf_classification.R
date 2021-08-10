@@ -80,9 +80,9 @@ landExtract$sampleType <- "train"
 landExtract$sampleType[sampleSamp] <- "valid"
 
 # extract raster values for training data points
-rgbEx <- extract(tr1,lc)
-msEx <- extract(tr1m,lc)
-plEx <- extract(pl,lc)
+rgbEx <- raster::extract(tr1,lc)
+msEx <- raster::extract(tr1m,lc)
+plEx <- raster::extract(pl,lc)
 
 # join the data
 dataAll <- cbind(landExtract,rgbEx)
