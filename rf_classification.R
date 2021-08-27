@@ -11,11 +11,10 @@ rm (list = ls())
 # load required packages
 library(rgdal)
 library(raster)
-library(sp)
-library(rgdal)
+#library(sp)
 library(caret)
 library(randomForest)
-library(tidyverse)
+#library(tidyverse)
 
 # set working directory
 setwd("L:/projects/siberia_uas_planet_comp")
@@ -106,7 +105,7 @@ tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the tra
                    repeats = 10) # number of repeats
 ###random forests
 #Typically square root of number of variables
-rf.grid <- expand.grid(mtry=1:3) # number of variables available for splitting at each tree node
+rf.grid <- expand.grid(mtry=1:2) # number of variables available for splitting at each tree node
 
 rf_model <- caret::train(x = trainD[,c(5:7)], #digital number data
                          y = as.factor(trainD$lcID), #land class we want to predict
@@ -116,6 +115,9 @@ rf_model <- caret::train(x = trainD[,c(5:7)], #digital number data
                          tuneGrid = rf.grid) #parameter tuning grid
 #check output
 rf_model
+
+# evaluate validation data
+confusionMatrix(predict(rf_model,validD[,5:7]),as.factor(validD$lcID))
 
 # apply RF model to rgb data
 rf_prediction <- raster::predict(tr1, model=rf_model,
@@ -150,6 +152,8 @@ rf_prediction_ms <- raster::predict(tr1m, model=rf_model_ms,
 #plot the data
 plot(rf_prediction_ms)
 
+confusionMatrix(predict(rf_model_ms,validDms[,5:10]),as.factor(validDms$lcID))
+
 #------------Random Forest Classification of Planet data------------#
 tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the training data
                    number = 10, # number 10 fold
@@ -175,6 +179,7 @@ rf_prediction_pl <- raster::predict(pl, model=rf_model_pl,
 #plot the data
 plot(rf_prediction_pl)
 
+confusionMatrix(predict(rf_model_pl,validDpl[,5:10]),as.factor(validDpl$lcID))
 #------------Random Forest Classification of Planet data with validation from MS land cover ------------
 
 # aggregate multispectral lc map to 3m resolution using modal function

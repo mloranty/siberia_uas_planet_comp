@@ -36,17 +36,6 @@ aea <- "+proj=aea +lat_1=25 +lat_2=75 +lat_0=60 +lon_0=150 +x_0=0 +y_0=0 +ellps=
 c1r <- stack("processed_Agisoft/adc_archive_files/RU_CYN_TR1_FL016_RGB.tif")
 NAvalue(c1r) <- 255
 
-# read Cherskiy North Transect 2 & set NA value
-c2r <- stack("processed_Agisoft/adc_archive_files/RU_CYN_TR2_FL017_RGB.tif")
-NAvalue(c2r) <- 255
-
-# read Alnus Transect 1 & set NA value
-a1r <- stack("processed_Agisoft/adc_archive_files/RU_ALN_TR1_FL007_RGB.tif")
-NAvalue(a1r) <- 255
-
-# read BP Transect 2 & set NA value
-b2r <- stack("processed_Agisoft/adc_archive_files/RU_BP_TR2_FL012_RGB.tif")
-NAvalue(b2r) <- 255
 
 #------------load multispectral uas data--------------------------------------------------------------
 # create a vector of names for ms layers
@@ -69,44 +58,7 @@ c1m[[6]] <- ndwi(c1m)
 # # set band names for ms image
 names(c1m) <- n
 
-### read Cherskiy North Transect 2 multispectral data
-c2m <- stack(c("processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_green.tif",
-               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_red.tif",
-               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_red_edge.tif",
-               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_nir.tif",
-               "processed_Pix4D/adc_archive_files/RU_CYN_TR2_FL017M_ndvi.tif"))
 
-# calculate ndwi after McFeeters et al 
-c2m[[6]] <- ndwi(c2m)
-
-# # set band names for ms image
-names(c2m) <- n
-
-### read Alnus Transect 1 multispectral data
-a1m <- stack(c("processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_green.tif",
-               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_red.tif",
-               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_red_edge.tif",
-               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_nir.tif",
-               "processed_Pix4D/adc_archive_files/RU_ALN_TR1_FL008M_ndvi.tif"))
-
-# calculate ndwi after McFeeters et al 
-a1m[[6]] <- ndwi(a1m)
-
-# # set band names for ms image
-names(a1m) <- n
-
-### read BP Transect 2 multispectral data
-b2m <- stack(c("processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_green.tif",
-               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_red.tif",
-               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_red_edge.tif",
-               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_nir.tif",
-               "processed_Pix4D/adc_archive_files/RU_BP_TR2_FL013M_ndvi.tif"))
-
-# calculate ndwi after McFeeters et al 
-b2m[[6]] <- ndwi(b2m)
-
-# # set band names for ms image
-names(b2m) <- n
 
 #------------load planet satellite data--------------------------------------------------------------
 # change working directory to project directory
@@ -115,9 +67,7 @@ setwd(pd)
 # surface reflectance image covering both Cherskiy North Transects from  6 July 2019
 cp <- stack("data/CYN_06_Jul_2019_PSScene4Band_Explorer/files/PSScene4Band/20190706_002918_101b/analytic_sr_udm2/20190706_002918_101b_3B_AnalyticMS_SR.tif")
 
-ap <- stack("data/planet/ALN_June_2019_psscene4band_analytic_sr_udm2/files/PSScene4Band/20190622_214533_1052/analytic_sr_udm2/20190622_214533_1052_3B_AnalyticMS_SR.tif")
 
-bp <- stack("data/planet/RU_BP_June_2019_psscene4band_analytic_sr_udm2/files/PSScene4Band/20190624_214432_1020/analytic_sr_udm2/20190624_214432_1020_3B_AnalyticMS_SR.tif")
 
 
 ######### STOPPING HERE, 7/20/21 - need to consider common projection and figure out UAS MS reflectance issues
