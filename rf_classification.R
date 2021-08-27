@@ -154,7 +154,7 @@ plot(rf_prediction_ms)
 
 confusionMatrix(predict(rf_model_ms,validDms[,5:10]),as.factor(validDms$lcID))
 
-#------------Random Forest Classification of Planet data------------#
+#------------Random Forest Classification of Planet data------------
 tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the training data
                    number = 10, # number 10 fold
                    repeats = 10) # number of repeats
